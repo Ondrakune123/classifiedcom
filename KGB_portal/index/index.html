@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>KGB Agent Portal</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    font-family: 'Roboto Mono', monospace;
+    background-color: #121212;
+    color: #ff4c4c;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  #container {
+    margin-top: 50px;
+    background: #1f1f1f;
+    border-radius: 12px;
+    padding: 30px 40px;
+    width: 400px;
+    max-width: 90vw;
+    box-shadow: 0 0 20px #ff4c4c;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  h2 {
+    margin: 0 0 25px;
+    font-weight: 700;
+    font-size: 1.8em;
+    letter-spacing: 0.1em;
+    text-align: center;
+  }
+
+  input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 12px 15px;
+    margin: 10px 0 20px;
+    border-radius: 6px;
+    border: 1.5px solid #ff4c4c;
+    background: #121212;
+    color: #ff4c4c;
+    font-size: 1.1em;
+  }
+
+  input[type="text"]:focus, input[type="password"]:focus {
+    outline: none;
+    border-color: #ff7777;
+  }
+
+  button {
+    background-color: #ff4c4c;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 1.1em;
+    color: #121212;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  button:hover {
+    background-color: #cc3b3b;
+  }
+
+  #logout-btn {
+    align-self: flex-end;
+    margin-bottom: 20px;
+    display: none;
+  }
+
+  #welcome {
+    font-size: 1.6em;
+    font-weight: 700;
+    margin-bottom: 25px;
+    text-align: center;
+  }
+
+  #folders {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+  }
+
+  #folders li {
+    background: #121212;
+    border: 1.5px solid #ff4c4c;
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin-bottom: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    user-select: none;
+  }
+
+  #folders li:hover {
+    background-color: #ff4c4c;
+    color: #121212;
+  }
+
+  #agent-info {
+    margin-top: 40px;
+    width: 100%;
+    background: #121212;
+    border: 1.5px solid #ff4c4c;
+    border-radius: 12px;
+    padding: 20px 25px;
+    position: relative;
+    display: none;
+    color: #ff4c4c;
+  }
+
+  #agent-info p {
+    margin: 10px 0;
+    font-size: 1.1em;
+  }
+
+  #agent-info button#show-photos-btn {
+    width: 100%;
+    margin-top: 20px;
+  }
+
+  /* Zavřít tlačítko pro agent-info - malé, nad boxem */
+  #close-agent-info-btn {
+    position: absolute;
+    top: -45px;
+    left: 210px;
+    background: transparent;
+    border: none;
+    color: #ff4c4c;
+    font-size: 1.3em;
+    cursor: pointer;
+    padding: 2px 6px;
+    font-weight: 700;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    z-index: 10;
+  }
+
+  #close-agent-info-btn:hover {
+    background-color: #ff4c4c;
+    color: #121212;
+  }
+
+  #photos {
+    margin-top: 30px;
+    width: 100%;
+    background: #121212;
+    border: 1.5px solid #ff4c4c;
+    border-radius: 12px;
+    padding: 20px 25px 60px 25px;
+    display: none;
+    color: #ff4c4c;
+    position: relative;
+    max-height: 300px;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(100px,1fr));
+    gap: 15px;
+  }
+
+  #photos img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 2px solid #ff4c4c;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+
+  #photos img:hover {
+    transform: scale(1.1);
+  }
+
+  /* Zavřít tlačítko u photos */
+  #close-photos-btn {
+    position: absolute;
+    bottom: 15px;
+    right: 10px;
+    background: #ff4c4c;
+    border: none;
+    color: #121212;
+    font-size: 1em;
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: background-color 0.3s ease;
+    z-index: 10;
+  }
+
+  #close-photos-btn:hover {
+    background-color: #cc3b3b;
+  }
+
+  #lightbox {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    display: none;
+    z-index: 999;
+  }
+
+  #lightbox img {
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: 12px;
+    border: 3px solid #ff4c4c;
+  }
+
+</style>
+</head>
+<body>
+
+<div id="container">
+  <!-- Přihlašovací část -->
+  <h2>KGB Agent Portal</h2>
+  <input type="text" id="username" placeholder="Agent ID" autocomplete="off" />
+  <input type="password" id="password" placeholder="Access Code" autocomplete="off" />
+  <button id="login-btn">Přihlásit se</button>
+
+  <!-- Po přihlášení -->
+  <button id="logout-btn">Odhlásit se</button>
+
+  <div id="welcome"></div>
+
+  <ul id="folders">
+    <li data-folder="001">Složka 001: URdeRUScz</li>
+    <li data-folder="002">Složka 002: Turtle_Benjik</li>
+    <li data-folder="003">Složka 003: SleepyCat_72</li>
+  </ul>
+
+  <div id="agent-info">
+    <button id="close-agent-info-btn" title="Zavřít info">✕</button>
+    <p id="agent-name"><strong>Jméno:</strong> </p>
+    <p id="agent-address"><strong>Bydliště:</strong> </p>
+    <p id="agent-occupation"><strong>Povolání:</strong> </p>
+    <button id="show-photos-btn">Zobrazit záznamy</button>
+  </div>
+
+  <div id="photos">
+    <button id="close-photos-btn" title="Zavřít fotky">Zavřít</button>
+  </div>
+</div>
+
+<div id="lightbox" onclick="closeLightbox()">
+  <img id="lightbox-img" src="" alt="Full size" />
+</div>
+
+<script>
+  const loginBtn = document.getElementById('login-btn');
+  const logoutBtn = document.getElementById('logout-btn');
+  const usernameInput = document.getElementById('username');
+  const passwordInput = document.getElementById('password');
+  const welcomeText = document.getElementById('welcome');
+  const foldersList = document.getElementById('folders');
+  const agentInfo = document.getElementById('agent-info');
+  const photos = document.getElementById('photos');
+  const showPhotosBtn = document.getElementById('show-photos-btn');
+  const closeAgentInfoBtn = document.getElementById('close-agent-info-btn');
+  const closePhotosBtn = document.getElementById('close-photos-btn');
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightbox-img');
+
+  // Data agentů podle složky
+  const agentsData = {
+    '001': {
+      name: 'Ivan Ivanovič Urderus',
+      address: 'Moskva, Rusko',
+      occupation: 'Špionážní analytik',
+      photos: [
+        'C:/Users/ondra/Music/KGB_portal/photo/1.jpg',
+        'C:/Users/ondra/Music/KGB_portal/photo/2.jpg',
+        'C:/Users/ondra/Music/KGB_portal/photo/3.jpg',
+        'C:/Users/ondra/Music/KGB_portal/photo/4.jpg'
+      ]
+    },
+    '002': {
+      name: 'Nikolaj Vasiljevič Benjik',
+      address: 'Sankt-Petěrburg, Rusko',
+      occupation: 'Operativní agent',
+      photos: [
+        'C:/Users/ondra/Music/KGB_portal/photo/1.jpg',
+        'C:/Users/ondra/Music/KGB_portal/photo/2.jpg',
+        'C:/Users/ondra/Music/KGB_portal/photo/3.jpg'
+      ]
+    },
+    '003': {
+      name: 'Olga Sergejevna Catova',
+      address: 'Novosibirsk, Rusko',
+      occupation: 'Informační specialista',
+      photos: [
+        'C:/Users/ondra/Music/KGB_portal/photo/1.jpg',
+        'C:/Users/ondra/Music/KGB_portal/photo/2.jpg'
+      ]
+    }
+  };
+
+  // Inicialní nastavení
+  foldersList.style.display = 'none';
+  agentInfo.style.display = 'none';
+  photos.style.display = 'none';
+  logoutBtn.style.display = 'none';
+
+  loginBtn.addEventListener('click', () => {
+    const username = usernameInput.value.trim();
+    const password = passwordInput.value.trim();
+
+    if(username === '' || password === '') {
+      alert('Prosím, vyplňte obě pole.');
+      return;
+    }
+
+    // Pro jednoduchost - vždy povolit přihlášení (v reálu by byla validace)
+    welcomeText.textContent = `Vítejte, agent ${username}`;
+    usernameInput.style.display = 'none';
+    passwordInput.style.display = 'none';
+    loginBtn.style.display = 'none';
+
+    logoutBtn.style.display = 'block';
+    foldersList.style.display = 'block';
+  });
+
+  logoutBtn.addEventListener('click', () => {
+    welcomeText.textContent = '';
+    usernameInput.style.display = 'block';
+    passwordInput.style.display = 'block';
+    loginBtn.style.display = 'block';
+
+    logoutBtn.style.display = 'none';
+    foldersList.style.display = 'none';
+
+    agentInfo.style.display = 'none';
+    photos.style.display = 'none';
+
+    usernameInput.value = '';
+    passwordInput.value = '';
+  });
+
+  // Kliknutí na složku
+  foldersList.addEventListener('click', (e) => {
+    if(e.target.tagName === 'LI') {
+      const folder = e.target.getAttribute('data-folder');
+      if(agentsData[folder]) {
+        const agent = agentsData[folder];
+
+        // Naplnit údaje agenta
+        document.getElementById('agent-name').innerHTML = `<strong>Jméno:</strong> ${agent.name}`;
+        document.getElementById('agent-address').innerHTML = `<strong>Bydliště:</strong> ${agent.address}`;
+        document.getElementById('agent-occupation').innerHTML = `<strong>Povolání:</strong> ${agent.occupation}`;
+
+        // Ukázat info
+        agentInfo.style.display = 'block';
+
+        // Skrýt fotky
+        photos.style.display = 'none';
+
+        // Vyčistit staré fotky (kromě tlačítka zavřít)
+        photos.querySelectorAll('img').forEach(img => img.remove());
+
+        // Přidat nové fotky
+        agent.photos.forEach(src => {
+          const img = document.createElement('img');
+          img.src = src;
+          img.alt = 'Foto agenta';
+          photos.appendChild(img);
+
+          img.addEventListener('click', () => {
+            lightboxImg.src = img.src;
+            lightbox.style.display = 'flex';
+          });
+        });
+      } else {
+        // Nenalezeno - schovat info
+        agentInfo.style.display = 'none';
+        photos.style.display = 'none';
+      }
+    }
+  });
+
+  // Tlačítko zobrazit záznamy (fotky)
+  showPhotosBtn.addEventListener('click', () => {
+    if(photos.style.display === 'grid') {
+      photos.style.display = 'none';
+    } else {
+      photos.style.display = 'grid';
+    }
+  });
+
+  // Zavřít info
+  closeAgentInfoBtn.addEventListener('click', () => {
+    agentInfo.style.display = 'none';
+    photos.style.display = 'none';
+  });
+
+  // Zavřít fotky
+  closePhotosBtn.addEventListener('click', () => {
+    photos.style.display = 'none';
+  });
+
+  // Zavřít lightbox klikem
+  function closeLightbox() {
+    lightbox.style.display = 'none';
+    lightboxImg.src = '';
+  }
+  window.closeLightbox = closeLightbox;
+
+</script>
+
+</body>
+</html>
